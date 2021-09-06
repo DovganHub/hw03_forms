@@ -24,12 +24,10 @@
               Автор: {{username}}
               <a href="/profile/{{username}}">все посты пользователя</a>
             </li>
-          
           </ul>
           <p>
          {% for post in page_obj %}
             <p> {{ post }} </p>
-            
             <li>
               Дата публикации: {{post.pub_date}}
             </li>
@@ -39,15 +37,8 @@
             <a href="/group/{{post.group.slug}}">все записи группы</a>
             {% endif %}
          {% endfor %}
-
-  
-          
-          
-          
-        </article>       
-                
+        </article>        
         <hr>
-        <!-- Остальные посты. после последнего нет черты -->
         {% include 'posts/includes/paginator.html' %}      </div>
     </main>
     <footer class="border-top text-center py-3">
