@@ -1,48 +1,30 @@
-<!DOCTYPE html>
-<html lang="ru"> 
-  <head>  
-    <title>Профайл пользователя {{username}}</title>
-  </head>
-  <body>       
-    <header>
-      <nav class="navbar navbar-light" style="background-color: lightskyblue">
-        <div class="container">
-          <a class="navbar-brand" href="/">
-            <img src="/static/img/logo.png" width="30" height="30" class="d-inline-block align-top" alt="">
-            <span style="color:red">Ya</span>tube
-          </a>
-        </div>
-      </nav>      
-    </header>
-    <main>
-      <div class="container py-5">        
-        <h1>Все посты пользователя {{username}} </h1>
-        <h3>Всего постов: {{count}} </h3>   
+{% extends "base.html" %}
+{% block title %} <title>Профайл пользователя {{username}}</title> {% endblock %}
+{% block content %}
         <article>
           <ul>
             <li>
               Автор: {{username}}
-              <a href="/profile/{{username}}">все посты пользователя</a>
+              <a href="{% url 'posts:profile' username %}">все посты пользователя</a>
+              
             </li>
           </ul>
           <p>
          {% for post in page_obj %}
             <p> {{ post }} </p>
             <li>
-              Дата публикации: {{post.pub_date}}
+              Дата публикации: {{ post.pub_date }}
             </li>
-            <a href="/posts/{{post.pk}}">подробная информация </a>
+            <a href="{% url 'posts:post_detail' post.pk %}">подробная информация </a>
+            
             </p>
             {% if post.group %}
-            <a href="/group/{{post.group.slug}}">все записи группы</a>
+            <a href="{% url 'posts:group' post.group.slug %}">все записи группы</a>
+            
             {% endif %}
          {% endfor %}
         </article>        
         <hr>
         {% include 'posts/includes/paginator.html' %}      </div>
     </main>
-    <footer class="border-top text-center py-3">
-      <p>© <!--2021 --> Copyright <span style="color:red">Ya</span>tube</p>    
-    </footer>
-  </body>
-</html> 
+{% endblock %}

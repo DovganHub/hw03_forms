@@ -1,4 +1,6 @@
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.core.paginator import Paginator
 from .models import Post, Group
 from django.contrib.auth import get_user_model
@@ -21,7 +23,7 @@ def index(request):
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
-    posts = Post.objects.filter(group=group).order_by('-pub_date')[:10]
+    posts = group.posts.order_by('-pub_date')[:10]
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -34,23 +36,21 @@ def group_posts(request, slug):
 
 def profile(request, username):
     author = get_object_or_404(User, username=username)
-    post_list = Post.objects.filter(author=author).order_by('-pub_date')
+    post_list = author.posts.order_by('-pub_date')
     paginator = Paginator(post_list, 10)
-    count = paginator.count
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {
         'username': username,
         'page_obj': page_obj,
-        'count': count,
         'author': author,
     }
     return render(request, 'posts/profile.html', context)
 
 
 def post_detail(request, post_id):
-    post = Post.objects.filter(pk=post_id).first()
-    post_list = Post.objects.filter(author=post.author)
+    post = get_object_or_404(Post, pk=post_id)
+    post_list = post.author.posts
     paginator = Paginator(post_list, 10)
     count = paginator.count
     context = {
@@ -62,39 +62,35 @@ def post_detail(request, post_id):
 
 
 def post_create(request):
-    user = request.user
     form = PostForm(request.POST or None)
     if form.is_valid():
-        obj = form.save(commit=False)
-        obj.author = user
-        obj.save()
-        return redirect(f'/profile/{user}/')
-    form = PostForm()
+        new_post = form.save(commit=False)
+        new_post.author = request.user
+        new_post.save()
+        return HttpResponseRedirect(reverse('posts:profile',
+                                    args=[request.user]))
     context = {
         'form': form,
-        'is_edit': False,
     }
-    return render(request, 'posts/create.html', context,
-                  RequestContext(request))
+    return render(request, 'posts/create.html', context)
 
 
 def post_edit(request, post_id):
-    user = request.user
-    post = Post.objects.filter(pk=post_id).first()
-    if request.user.is_authenticated and user == post.author:
-        form = PostForm(request.POST, instance=post)
-        if form.is_valid():
-            form.save()
-            return redirect(f'/posts/{post_id}')
-        else:
-            form = PostForm(instance=post)
-
-        form = PostForm(instance=post)
-        form.text = post.text
-        context = {
-            'form': form,
-            'is_edit': True,
-        }
-        return render(request, 'posts/create.html', context,
-                      RequestContext(request))
-    return redirect(f'/posts/{post_id}')
+    post = get_object_or_404(Post, pk=post_id)
+    if not request.user.is_authenticated and request.user == post.author:
+        return HttpResponseRedirect(reverse('posts:post_detail',
+                                    args=[post_id]))
+    form = PostForm(request.POST, instance=post)
+    if form.is_valid():
+        form.save()
+        return HttpResponseRedirect(reverse('posts:post_detail',
+                                    args=[post_id]))
+    form = PostForm(instance=post)
+    form.text = post.text
+    context = {
+        'form': form,
+        'is_edit': True,
+        'post_id': post.id,
+    }
+    return render(request, 'posts/create.html', context,
+                  RequestContext(request))
