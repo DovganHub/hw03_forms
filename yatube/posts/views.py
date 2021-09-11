@@ -23,7 +23,7 @@ def index(request):
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
-    posts = group.posts.order_by('-pub_date')[:10]
+    posts = group.posts.order_by('-pub_date')
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -41,7 +41,6 @@ def profile(request, username):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {
-        'username': username,
         'page_obj': page_obj,
         'author': author,
     }
@@ -50,13 +49,9 @@ def profile(request, username):
 
 def post_detail(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
-    post_list = post.author.posts
-    paginator = Paginator(post_list, 10)
-    count = paginator.count
     context = {
         'post_id': post_id,
         'post': post,
-        'count': count,
     }
     return render(request, 'posts/post_detail.html', context)
 
@@ -85,8 +80,10 @@ def post_edit(request, post_id):
         form.save()
         return HttpResponseRedirect(reverse('posts:post_detail',
                                     args=[post_id]))
-    form = PostForm(instance=post)
-    form.text = post.text
+    # form = PostForm(instance=post)
+    # form.text = post.text
+    # Но тогда при редактировании пост будет пустым, а не со старым текстом =(
+    # Или это ок?
     context = {
         'form': form,
         'is_edit': True,

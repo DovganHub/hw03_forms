@@ -1,1 +1,1 @@
-/yatube/static/img/*
+/yatube/static/*

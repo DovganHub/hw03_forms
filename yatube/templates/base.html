@@ -11,22 +11,16 @@
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
-    <title>Последние обновления на сайте</title>
+    {% block title %}{% endblock %}
   </head>
-
   <body>       
-    <header>
       {% include 'includes/header.html' %}
-    </header>
-      {% block title %}{% endblock %}
+      {% block header %}{% endblock %}
     <main>
-
       {% block content %}
         Контент не подвезли :(
       {% endblock %}
     </main>
-    <footer>
       {% include 'includes/footer.html' %} 
-    </footer>
   </body>
 </html>
