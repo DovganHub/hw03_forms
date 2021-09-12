@@ -72,18 +72,14 @@ def post_create(request):
 
 def post_edit(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
-    if not request.user.is_authenticated and request.user == post.author:
+    if not request.user == post.author:
         return HttpResponseRedirect(reverse('posts:post_detail',
                                     args=[post_id]))
-    form = PostForm(request.POST, instance=post)
+    form = PostForm(request.POST or None, instance=post)
     if form.is_valid():
         form.save()
         return HttpResponseRedirect(reverse('posts:post_detail',
                                     args=[post_id]))
-    # form = PostForm(instance=post)
-    # form.text = post.text
-    # Но тогда при редактировании пост будет пустым, а не со старым текстом =(
-    # Или это ок?
     context = {
         'form': form,
         'is_edit': True,
